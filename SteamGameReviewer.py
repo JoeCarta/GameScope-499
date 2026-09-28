@@ -2,6 +2,7 @@
 import requests
 import csv
 import time
+from datetime import datetime, timezone
 
 
 # ==========================================
@@ -106,6 +107,10 @@ def get_reviews(app_id, max_reviews=1000, language="english"):
 
             review_data = {
 
+                # Unique Steam review ID
+                "review_id":
+                    review.get("recommendationid"),
+
                 # Game information
                 "app_id": app_id,
 
@@ -135,7 +140,23 @@ def get_reviews(app_id, max_reviews=1000, language="english"):
                 "helpful_votes":
                     review.get("votes_up", 0),
 
-                
+                "funny_votes":
+                    review.get("votes_funny", 0),
+
+                # Steam's own helpfulness score (0 to 1)
+                "weighted_vote_score":
+                    float(
+                        review.get(
+                            "weighted_vote_score", 0
+                        )
+                    ),
+
+                # When the review was posted (UTC)
+                "created_at":
+                    datetime.fromtimestamp(
+                        review.get("timestamp_created", 0),
+                        tz=timezone.utc
+                    ).strftime("%Y-%m-%d %H:%M:%S"),
             }
 
             reviews.append(review_data)
