@@ -1,18 +1,28 @@
 import csv
+import os
+from getpass import getpass
 import mysql.connector
 
 # Ask which Steam game to import
 app_id = input("Enter Steam App ID: ").strip()
 
-# CSV filename
-filename = f"steam_reviews{app_id}.csv"
+# CSV filename (must match the name SteamGameReviewer.py saves)
+filename = f"steam_reviews_{app_id}.csv"
+
+# MySQL password comes from the MYSQL_PASSWORD environment variable
+# so nobody has to type their real password into the code.
+# If it isn't set, ask for it instead.
+password = os.environ.get("MYSQL_PASSWORD")
+
+if not password:
+    password = getpass("MySQL password: ")
 
 # Connect to MySQL
 db = mysql.connector.connect(
     host="localhost",
     port=3306,
     user="root",
-    password="YOUR_PASSWORD",
+    password=password,
     database="game_reviews"
 )
 
