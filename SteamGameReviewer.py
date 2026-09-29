@@ -1,63 +1,82 @@
-
 import requests
 import csv
 import time
-from datetime import datetime, timezone
+
+
+# ==========================================
+# STEAM GAME INFORMATION
+# ==========================================
+
+def get_game_name(app_id):
+    """
+    Get the game name from a Steam App ID.
+    """
+
+    url = f"https://store.steampowered.com/api/appdetails?appids={app_id}"
+
+    try:
+        response = requests.get(
+            url,
+            timeout=15
+        )
+
+        response.raise_for_status()
+
+        data = response.json()
+
+        app_data = data.get(str(app_id), {})
+
+        if not app_data.get("success"):
+            return None
+
+        game_name = app_data.get("data", {}).get("name")
+
+        return game_name
+
+    except requests.RequestException as error:
+
+        print(f"Could not retrieve game information: {error}")
+        return None
+
+    except ValueError:
+
+        print("Steam returned invalid JSON.")
+        return None
 
 
 # ==========================================
 # STEAM REVIEW COLLECTOR
-# Works with ANY Steam game
 # ==========================================
 
-
 def get_reviews(app_id, max_reviews=1000, language="english"):
+
     """
     Collect reviews from any Steam game.
-
-    app_id:
-        Steam App ID of the game.
-
-    max_reviews:
-        Maximum number of reviews to collect.
-
-    language:
-        Language of reviews to collect.
-        Default is English.
     """
 
     url = f"https://store.steampowered.com/appreviews/{app_id}"
 
     reviews = []
+    review_ids = set()
     cursor = "*"
 
     print()
-    print(f"Collecting reviews for Steam App ID: {app_id}")
+    print("------------------------------------------")
+    print(f"Collecting reviews for App ID: {app_id}")
     print(f"Language: {language}")
     print(f"Target reviews: {max_reviews}")
+    print("------------------------------------------")
     print()
 
     while len(reviews) < max_reviews:
 
         params = {
             "json": 1,
-
-            # Get reviews
             "filter": "recent",
-
-            # Review language
             "language": language,
-
-            # Get both positive and negative reviews
             "review_type": "all",
-
-            # Include all purchase types
             "purchase_type": "all",
-
-            # Maximum allowed per request
             "num_per_page": 100,
-
-            # Pagination
             "cursor": cursor
         }
 
@@ -83,7 +102,10 @@ def get_reviews(app_id, max_reviews=1000, language="english"):
             print("Steam returned invalid JSON.")
             break
 
-        # Check Steam response
+        # ==========================================
+        # CHECK RESPONSE
+        # ==========================================
+
         if data.get("success") != 1:
 
             print("Steam API request was unsuccessful.")
@@ -91,7 +113,6 @@ def get_reviews(app_id, max_reviews=1000, language="english"):
 
         batch = data.get("reviews", [])
 
-        # No more reviews
         if not batch:
 
             print("No more reviews found.")
@@ -103,65 +124,77 @@ def get_reviews(app_id, max_reviews=1000, language="english"):
 
         for review in batch:
 
+            # Steam's actual review ID
+            review_id = review.get("recommendationid")
+
+            if not review_id:
+
+                print("Skipped review without review ID.")
+                continue
+
+            # Prevent duplicates
+            if review_id in review_ids:
+
+                continue
+
+            review_ids.add(review_id)
+
             author = review.get("author", {})
+
+            # Recommended
+            recommended = review.get(
+                "voted_up",
+                False
+            )
+
+            # Playtime
+            playtime_forever = author.get(
+                "playtime_forever",
+                0
+            )
+
+            playtime_at_review = author.get(
+                "playtime_at_review",
+                0
+            )
+
+            playtime_hours = round(
+                playtime_forever / 60,
+                2
+            )
+
+            playtime_at_review_hours = round(
+                playtime_at_review / 60,
+                2
+            )
 
             review_data = {
 
-                # Unique Steam review ID
-                "review_id":
-                    review.get("recommendationid"),
+                "review_id": review_id,
 
-                # Game information
                 "app_id": app_id,
 
-                "review_text":
-                    review.get("review"),
+                "review_text": review.get(
+                    "review",
+                    ""
+                ),
 
-                "recommended":
-                    review.get("voted_up"),
+                "recommended": recommended,
 
-                "playtime_hours":
-                    round(
-                        author.get(
-                            "playtime_forever", 0
-                        ) / 60,
-                        2
-                    ),
+                "playtime_hours": playtime_hours,
 
                 "playtime_at_review_hours":
-                    round(
-                        author.get(
-                            "playtime_at_review", 0
-                        ) / 60,
-                        2
-                    ),
+                    playtime_at_review_hours,
 
-                # Community feedback
                 "helpful_votes":
-                    review.get("votes_up", 0),
-
-                "funny_votes":
-                    review.get("votes_funny", 0),
-
-                # Steam's own helpfulness score (0 to 1)
-                "weighted_vote_score":
-                    float(
-                        review.get(
-                            "weighted_vote_score", 0
-                        )
-                    ),
-
-                # When the review was posted (UTC)
-                "created_at":
-                    datetime.fromtimestamp(
-                        review.get("timestamp_created", 0),
-                        tz=timezone.utc
-                    ).strftime("%Y-%m-%d %H:%M:%S"),
+                    review.get(
+                        "votes_up",
+                        0
+                    )
             }
 
             reviews.append(review_data)
 
-            # Stop when target is reached
             if len(reviews) >= max_reviews:
                 break
 
@@ -171,7 +204,7 @@ def get_reviews(app_id, max_reviews=1000, language="english"):
         )
 
         # ==========================================
-        # GET NEXT PAGE
+        # NEXT PAGE
         # ==========================================
 
         new_cursor = data.get("cursor")
@@ -188,7 +221,6 @@ def get_reviews(app_id, max_reviews=1000, language="english"):
 
         cursor = new_cursor
 
-        # Small delay between requests
         time.sleep(1)
 
     return reviews
@@ -198,17 +230,26 @@ def get_reviews(app_id, max_reviews=1000, language="english"):
 # SAVE REVIEWS TO CSV
 # ==========================================
 
-
-def save_reviews(reviews, app_id):
+def save_reviews(reviews, app_id, game_name):
 
     filename = f"steam_reviews_{app_id}.csv"
 
     if not reviews:
 
+        print()
         print("No reviews were collected.")
         return
 
-    fieldnames = reviews[0].keys()
+    fieldnames = [
+        "game_name",
+        "review_id",
+        "app_id",
+        "review_text",
+        "recommended",
+        "playtime_hours",
+        "playtime_at_review_hours",
+        "helpful_votes"
+    ]
 
     with open(
         filename,
@@ -224,11 +265,20 @@ def save_reviews(reviews, app_id):
 
         writer.writeheader()
 
-        writer.writerows(reviews)
+        for review in reviews:
+
+            row = {
+                "game_name": game_name,
+                **review
+            }
+
+            writer.writerow(row)
 
     print()
     print("------------------------------------------")
     print("Finished!")
+    print(f"Game: {game_name}")
+    print(f"App ID: {app_id}")
     print(f"Reviews collected: {len(reviews)}")
     print(f"File created: {filename}")
     print("------------------------------------------")
@@ -238,7 +288,6 @@ def save_reviews(reviews, app_id):
 # MAIN PROGRAM
 # ==========================================
 
-
 if __name__ == "__main__":
 
     print("------------------------------------------")
@@ -246,9 +295,9 @@ if __name__ == "__main__":
     print("------------------------------------------")
     print()
 
-    # --------------------------------------
-    # Get Steam App ID
-    # --------------------------------------
+    # ==========================================
+    # GET APP ID
+    # ==========================================
 
     while True:
 
@@ -262,19 +311,43 @@ if __name__ == "__main__":
 
             if app_id <= 0:
 
-                print("App ID must be greater than 0.")
+                print(
+                    "App ID must be greater than 0."
+                )
+
                 continue
 
             break
 
         except ValueError:
 
-            print("Please enter a valid Steam App ID.")
+            print(
+                "Please enter a valid Steam App ID."
+            )
 
+    # ==========================================
+    # GET GAME NAME
+    # ==========================================
 
-    # --------------------------------------
-    # Number of reviews
-    # --------------------------------------
+    print()
+    print("Looking up game information...")
+
+    game_name = get_game_name(app_id)
+
+    if not game_name:
+
+        print()
+        print(
+            "Could not find a game for this App ID."
+        )
+
+        exit()
+
+    print(f"Game found: {game_name}")
+
+    # ==========================================
+    # NUMBER OF REVIEWS
+    # ==========================================
 
     max_reviews_input = input(
         "How many reviews do you want? "
@@ -289,7 +362,9 @@ if __name__ == "__main__":
 
         try:
 
-            max_reviews = int(max_reviews_input)
+            max_reviews = int(
+                max_reviews_input
+            )
 
             if max_reviews <= 0:
 
@@ -309,10 +384,9 @@ if __name__ == "__main__":
 
             max_reviews = 1000
 
-
-    # --------------------------------------
-    # Language
-    # --------------------------------------
+    # ==========================================
+    # LANGUAGE
+    # ==========================================
 
     language = input(
         "Language (default: english): "
@@ -322,10 +396,9 @@ if __name__ == "__main__":
 
         language = "english"
 
-
-    # --------------------------------------
-    # Collect reviews
-    # --------------------------------------
+    # ==========================================
+    # COLLECT
+    # ==========================================
 
     reviews = get_reviews(
         app_id=app_id,
@@ -333,13 +406,12 @@ if __name__ == "__main__":
         language=language
     )
 
-
-    # --------------------------------------
-    # Save reviews
-    # --------------------------------------
+    # ==========================================
+    # SAVE
+    # ==========================================
 
     save_reviews(
         reviews,
-        app_id
+        app_id,
+        game_name
     )
-
