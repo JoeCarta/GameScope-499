@@ -3,69 +3,212 @@ import unicodedata
 
 from lingua import Language, LanguageDetectorBuilder
 
+
+# ==========================================
+# FILTER SETTINGS
+# ==========================================
+
 MIN_WORDS = 5
 MIN_UNIQUE_WORDS = 3
 MIN_LETTER_RATIO = 0.5
 MIN_FUNNY_VOTES = 3
 MIN_CHECKBOXES = 3
+
 CHECKBOXES = "☐☑☒✅❌✔"
 
+
+# ==========================================
+# STEAM LANGUAGES
+# ==========================================
+
 STEAM_LANGUAGES = [
-    Language.ENGLISH, Language.SPANISH, Language.PORTUGUESE, Language.GERMAN,
-    Language.FRENCH, Language.TURKISH, Language.POLISH, Language.ITALIAN,
-    Language.VIETNAMESE, Language.CZECH, Language.DUTCH, Language.HUNGARIAN,
+    Language.ENGLISH,
+    Language.SPANISH,
+    Language.PORTUGUESE,
+    Language.GERMAN,
+    Language.FRENCH,
+    Language.TURKISH,
+    Language.POLISH,
+    Language.ITALIAN,
+    Language.VIETNAMESE,
+    Language.CZECH,
+    Language.DUTCH,
+    Language.HUNGARIAN,
     Language.INDONESIAN,
 ]
 
-detector = LanguageDetectorBuilder.from_languages(*STEAM_LANGUAGES).build()
 
+# ==========================================
+# LANGUAGE DETECTOR
+# ==========================================
+
+detector = LanguageDetectorBuilder \
+    .from_languages(*STEAM_LANGUAGES) \
+    .build()
+
+
+# ==========================================
+# HELPER FUNCTIONS
+# ==========================================
 
 def is_latin(letter):
-    return unicodedata.name(letter, "").startswith("LATIN")
+    """
+    Check whether a character belongs to
+    the Latin alphabet.
+    """
+
+    return unicodedata.name(
+        letter,
+        ""
+    ).startswith("LATIN")
 
 
 def words_only(text):
-    return " ".join("".join(c if c.isalpha() else " " for c in text).split())
+    """
+    Remove punctuation and symbols while
+    keeping alphabetic characters.
+    """
 
+    return " ".join(
+        "".join(
+            c if c.isalpha() else " "
+            for c in text
+        ).split()
+    )
+
+
+# ==========================================
+# DETERMINE WHY REVIEW IS JUNK
+# ==========================================
 
 def junk_reason(review, seen_texts):
 
-    text = (review["review_text"] or "").strip()
-    normalized = " ".join(text.lower().split())
+    text = (
+        review.get("review_text") or ""
+    ).strip()
+
+    normalized = " ".join(
+        text.lower().split()
+    )
+
+    # ------------------------------------------
+    # Empty review
+    # ------------------------------------------
+
+    if not text:
+
+        return "empty review"
+
+    # ------------------------------------------
+    # Too short
+    # ------------------------------------------
 
     if len(text.split()) < MIN_WORDS:
+
         return "too short"
 
-    non_space = [c for c in text if not c.isspace()]
-    letters = [c for c in non_space if c.isalpha()]
+    # ------------------------------------------
+    # Letter ratio
+    # ------------------------------------------
 
-    if len(letters) / len(non_space) < MIN_LETTER_RATIO:
+    non_space = [
+        c
+        for c in text
+        if not c.isspace()
+    ]
+
+    letters = [
+        c
+        for c in non_space
+        if c.isalpha()
+    ]
+
+    if not non_space:
+
+        return "empty review"
+
+    letter_ratio = (
+        len(letters) / len(non_space)
+    )
+
+    if letter_ratio < MIN_LETTER_RATIO:
+
         return "ascii art / symbols"
 
-    if sum(text.count(c) for c in CHECKBOXES) >= MIN_CHECKBOXES:
+    # ------------------------------------------
+    # Checkbox template
+    # ------------------------------------------
+
+    checkbox_count = sum(
+        text.count(c)
+        for c in CHECKBOXES
+    )
+
+    if checkbox_count >= MIN_CHECKBOXES:
+
         return "checkbox template"
 
-    if not all(is_latin(c) for c in letters):
+    # ------------------------------------------
+    # Non-Latin alphabet
+    # ------------------------------------------
+
+    if letters and not all(
+        is_latin(c)
+        for c in letters
+    ):
+
         return "non-latin alphabet"
 
-    if len(set(words_only(text).lower().split())) < MIN_UNIQUE_WORDS:
+    # ------------------------------------------
+    # Repeated words
+    # ------------------------------------------
+
+    cleaned_words = words_only(
+        text
+    ).lower().split()
+
+    if len(
+        set(cleaned_words)
+    ) < MIN_UNIQUE_WORDS:
+
         return "repeated words"
 
+    # ------------------------------------------
+    # Duplicate review
+    # ------------------------------------------
+
     if normalized in seen_texts:
+
         return "duplicate"
 
     seen_texts.add(normalized)
 
-    funny = int(review["funny_votes"])
+    # ------------------------------------------
+    # Language detection
+    # ------------------------------------------
 
-    if funny >= MIN_FUNNY_VOTES and funny > int(review["helpful_votes"]):
-        return "more funny than helpful"
+    cleaned_text = words_only(text)
 
-    if detector.detect_language_of(words_only(text)) != Language.ENGLISH:
+    detected_language = (
+        detector.detect_language_of(
+            cleaned_text
+        )
+    )
+
+    if detected_language != Language.ENGLISH:
+
         return "not english"
+
+    # ------------------------------------------
+    # Review passed all filters
+    # ------------------------------------------
 
     return None
 
+
+# ==========================================
+# FILTER REVIEWS
+# ==========================================
 
 def filter_reviews(reviews):
 
@@ -75,38 +218,204 @@ def filter_reviews(reviews):
 
     for review in reviews:
 
-        reason = junk_reason(review, seen_texts)
+        reason = junk_reason(
+            review,
+            seen_texts
+        )
 
         if reason:
-            removed[reason] = removed.get(reason, 0) + 1
+
+            removed[reason] = (
+                removed.get(reason, 0) + 1
+            )
+
         else:
+
             kept.append(review)
 
     return kept, removed
 
 
+# ==========================================
+# MAIN PROGRAM
+# ==========================================
+
 if __name__ == "__main__":
 
-    app_id = input("Enter Steam App ID: ").strip()
+    print("------------------------------------------")
+    print("       STEAM REVIEW FILTER")
+    print("------------------------------------------")
+    print()
 
-    input_file = f"steam_reviews_{app_id}.csv"
-    output_file = f"steam_reviews_{app_id}_filtered.csv"
+    # ------------------------------------------
+    # Get App ID
+    # ------------------------------------------
 
-    with open(input_file, "r", encoding="utf-8-sig") as file:
-        reader = csv.DictReader(file)
-        fieldnames = reader.fieldnames
-        reviews = list(reader)
+    app_id = input(
+        "Enter Steam App ID: "
+    ).strip()
 
-    kept, removed = filter_reviews(reviews)
+    if not app_id.isdigit():
 
-    with open(output_file, "w", newline="", encoding="utf-8-sig") as file:
-        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        print("Invalid App ID.")
+        exit()
+
+    # ------------------------------------------
+    # File names
+    # ------------------------------------------
+
+    input_file = (
+        f"steam_reviews_{app_id}.csv"
+    )
+
+    output_file = (
+        f"steam_reviews_filtered_{app_id}.csv"
+    )
+
+    # ------------------------------------------
+    # Read CSV
+    # ------------------------------------------
+
+    try:
+
+        with open(
+            input_file,
+            "r",
+            encoding="utf-8-sig",
+            newline=""
+        ) as file:
+
+            reader = csv.DictReader(file)
+
+            fieldnames = reader.fieldnames
+
+            reviews = list(reader)
+
+    except FileNotFoundError:
+
+        print()
+        print(
+            f"Could not find: {input_file}"
+        )
+
+        print(
+            "Run review.py first."
+        )
+
+        exit()
+
+    # ------------------------------------------
+    # Validate CSV
+    # ------------------------------------------
+
+    required_columns = [
+        "game_name",
+        "review_id",
+        "app_id",
+        "review_text",
+        "recommended",
+        "playtime_hours",
+        "playtime_at_review_hours",
+        "helpful_votes"
+    ]
+
+    missing_columns = [
+        column
+        for column in required_columns
+        if column not in fieldnames
+    ]
+
+    if missing_columns:
+
+        print()
+        print("CSV is missing columns:")
+
+        for column in missing_columns:
+
+            print(f"  - {column}")
+
+        exit()
+
+    # ------------------------------------------
+    # Get game name
+    # ------------------------------------------
+
+    game_name = (
+        reviews[0]["game_name"]
+        if reviews
+        else "Unknown"
+    )
+
+    print(
+        f"Game: {game_name}"
+    )
+
+    print(
+        f"Reviews loaded: {len(reviews)}"
+    )
+
+    print()
+
+    # ------------------------------------------
+    # Filter
+    # ------------------------------------------
+
+    kept, removed = filter_reviews(
+        reviews
+    )
+
+    # ------------------------------------------
+    # Save filtered reviews
+    # ------------------------------------------
+
+    with open(
+        output_file,
+        "w",
+        newline="",
+        encoding="utf-8-sig"
+    ) as file:
+
+        writer = csv.DictWriter(
+            file,
+            fieldnames=fieldnames
+        )
+
         writer.writeheader()
+
         writer.writerows(kept)
 
-    print(f"Kept {len(kept)} of {len(reviews)} reviews")
+    # ==========================================
+    # RESULTS
+    # ==========================================
 
-    for reason, count in removed.items():
-        print(f"  removed {count}: {reason}")
+    print("------------------------------------------")
+    print("Filtering finished!")
+    print("------------------------------------------")
 
-    print(f"File created: {output_file}")
+    print(
+        f"Kept: {len(kept)}"
+    )
+
+    print(
+        f"Removed: {len(reviews) - len(kept)}"
+    )
+
+    print()
+
+    if removed:
+
+        print("Removal reasons:")
+
+        for reason, count in removed.items():
+
+            print(
+                f"  removed {count}: {reason}"
+            )
+
+    print()
+
+    print(
+        f"File created: {output_file}"
+    )
+
+    print("------------------------------------------")
