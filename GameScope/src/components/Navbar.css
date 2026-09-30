@@ -1,0 +1,439 @@
+.navbar {
+  position: fixed;
+
+  left: 0;
+  top: 0;
+
+  width: 250px;
+  height: 100vh;
+
+  background: #111827;
+
+  color: white;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 25px 15px;
+
+  z-index: 1000;
+
+  box-sizing: border-box;
+
+  animation: navbarSlideIn 0.6s ease;
+
+  transition:
+    width 0.35s ease,
+    padding 0.35s ease,
+    background-color 0.4s ease;
+}
+
+/* ==========================================
+   LOGO
+   ========================================== */
+
+.navbar-logo {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 5px 10px 30px;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+  overflow: hidden;
+
+  transition:
+    padding 0.35s ease,
+    justify-content 0.35s ease;
+}
+
+.logo-icon {
+  min-width: 42px;
+
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  background: #6366f1;
+
+  border-radius: 10px;
+
+  font-size: 22px;
+
+  font-weight: 700;
+
+  transition:
+    transform 0.3s ease,
+    width 0.35s ease;
+}
+
+.navbar-logo:hover .logo-icon {
+  transform: rotate(-8deg) scale(1.08);
+}
+
+.logo-text {
+  white-space: nowrap;
+
+  opacity: 1;
+
+  transition:
+    opacity 0.2s ease,
+    transform 0.35s ease;
+}
+
+.logo-text h2 {
+  margin: 0;
+
+  font-size: 18px;
+}
+
+.logo-text span {
+  font-size: 11px;
+
+  color: #9ca3af;
+}
+
+/* ==========================================
+   COLLAPSE BUTTON
+   ========================================== */
+
+.navbar-toggle {
+  position: absolute;
+
+  right: -13px;
+  top: 85px;
+
+  width: 28px;
+  height: 28px;
+
+  border: none;
+
+  border-radius: 50%;
+
+  background: #6366f1;
+
+  color: white;
+
+  font-size: 20px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+
+  transition:
+    transform 0.3s ease,
+    background-color 0.3s ease;
+}
+
+.navbar-toggle:hover {
+  transform: scale(1.1);
+
+  background: #4f46e5;
+}
+
+/* ==========================================
+   NAVIGATION
+   ========================================== */
+
+.navbar-menu {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 6px;
+
+  margin-top: 30px;
+}
+
+.nav-item {
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+
+  padding: 13px 15px;
+
+  border-radius: 9px;
+
+  color: #9ca3af;
+
+  text-decoration: none;
+
+  font-size: 14px;
+
+  font-weight: 500;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    transform 0.25s ease,
+    padding 0.35s ease;
+}
+
+.nav-icon {
+  min-width: 22px;
+
+  width: 22px;
+
+  text-align: center;
+
+  font-size: 18px;
+
+  transition:
+    transform 0.25s ease;
+}
+
+.nav-text {
+  opacity: 1;
+
+  transition:
+    opacity 0.2s ease,
+    transform 0.3s ease;
+}
+
+/* Hover */
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+
+  color: white;
+
+  transform: translateX(5px);
+}
+
+.nav-item:hover .nav-icon {
+  transform: scale(1.15);
+}
+
+/* Active */
+.nav-item.active {
+  background: #6366f1;
+
+  color: white;
+
+  box-shadow:
+    0 5px 15px rgba(99, 102, 241, 0.25);
+}
+
+/* ==========================================
+   THEME TOGGLE
+   ========================================== */
+
+.theme-toggle {
+  width: 100%;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+
+  padding: 13px 15px;
+
+  margin-bottom: 6px;
+
+  border: none;
+
+  border-radius: 9px;
+
+  background: transparent;
+
+  color: #9ca3af;
+
+  font-size: 14px;
+
+  font-weight: 500;
+
+  cursor: pointer;
+
+  text-align: left;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    transform 0.25s ease,
+    padding 0.35s ease;
+}
+
+.theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.07);
+
+  color: white;
+
+  transform: translateX(5px);
+}
+
+.theme-toggle:hover .nav-icon {
+  transform: rotate(20deg) scale(1.15);
+}
+
+/* ==========================================
+   BOTTOM
+   ========================================== */
+
+.navbar-bottom {
+  margin-top: auto;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+
+  padding-top: 15px;
+}
+
+/* ==========================================
+   COLLAPSED NAVBAR
+   ========================================== */
+
+.navbar-collapsed {
+  width: 75px;
+
+  padding: 25px 10px;
+}
+
+.navbar-collapsed .navbar-logo {
+  justify-content: center;
+
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.navbar-collapsed .logo-text {
+  opacity: 0;
+
+  transform: translateX(-10px);
+
+  width: 0;
+
+  pointer-events: none;
+}
+
+.navbar-collapsed .navbar-menu {
+  align-items: center;
+}
+
+.navbar-collapsed .nav-item {
+  width: 55px;
+
+  justify-content: center;
+
+  padding-left: 0;
+  padding-right: 0;
+
+  gap: 0;
+}
+
+.navbar-collapsed .theme-toggle {
+  width: 55px;
+
+  justify-content: center;
+
+  padding-left: 0;
+  padding-right: 0;
+
+  gap: 0;
+}
+
+.navbar-collapsed .nav-text {
+  opacity: 0;
+
+  transform: translateX(-10px);
+
+  width: 0;
+
+  pointer-events: none;
+}
+
+.navbar-collapsed .navbar-bottom {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+}
+
+/* ==========================================
+   NAVBAR ANIMATION
+   ========================================== */
+
+@keyframes navbarSlideIn {
+  from {
+    opacity: 0;
+
+    transform: translateX(-30px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: translateX(0);
+  }
+}
+
+/* ==========================================
+   MOBILE
+   ========================================== */
+
+@media (max-width: 768px) {
+  .navbar {
+    width: 75px;
+
+    padding: 20px 10px;
+  }
+
+  .navbar .logo-text,
+  .navbar .nav-text {
+    opacity: 0;
+
+    width: 0;
+
+    pointer-events: none;
+  }
+
+  .navbar .navbar-logo {
+    justify-content: center;
+
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .navbar .nav-item {
+    width: 55px;
+
+    justify-content: center;
+
+    padding-left: 0;
+    padding-right: 0;
+
+    gap: 0;
+  }
+
+  .navbar .theme-toggle {
+    width: 55px;
+
+    justify-content: center;
+
+    padding-left: 0;
+    padding-right: 0;
+
+    gap: 0;
+  }
+}
