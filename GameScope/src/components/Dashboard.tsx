@@ -1,459 +1,249 @@
-import { useEffect, useRef, useState } from "react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import { useState } from "react";
+
 import Navbar from "./Navbar";
+
 import "./Dashboard.css";
 
 interface DashboardProps {
   darkMode: boolean;
   setDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
+
+  currentPage: "dashboard" | "analytics";
+
+  setCurrentPage: React.Dispatch<
+    React.SetStateAction<"dashboard" | "analytics">
+  >;
+
+  // ==================================================
+  // SHARED ANALYSIS STATE
+  // ==================================================
+  // These values are controlled by App.tsx.
+  // ==================================================
+
+  // Tells Dashboard whether a game has been analyzed.
+  analyzed: boolean;
+
+  // Allows Dashboard to tell App.tsx that analysis
+  // has finished.
+  setAnalyzed: React.Dispatch<React.SetStateAction<boolean>>;
+
+  // App ID stored in App.tsx so Analytics can use it too.
+  analyzedAppId: string;
+
+  // Allows Dashboard to save the App ID after analysis.
+  setAnalyzedAppId: React.Dispatch<React.SetStateAction<string>>;
 }
-
-/* =========================
-   Scroll Reveal
-========================= */
-
-function Reveal({
-  children,
-  delay = 0,
-}: {
-  children: React.ReactNode;
-  delay?: number;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const element = ref.current;
-
-    if (!element) {
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setVisible(entry.isIntersecting);
-      },
-      {
-        threshold: 0.15,
-      }
-    );
-
-    observer.observe(element);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
-
-  return (
-    <div
-      ref={ref}
-      className={`scroll-reveal ${
-        visible ? "scroll-reveal-visible" : ""
-      }`}
-      style={{
-        transitionDelay: `${delay}ms`,
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-/* =========================
-   Animated Number
-========================= */
-
-function AnimatedNumber({
-  value,
-  duration = 1200,
-}: {
-  value: number;
-  duration?: number;
-}) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const [displayValue, setDisplayValue] = useState(0);
-  const [started, setStarted] = useState(false);
-
-  useEffect(() => {
-    const element = ref.current;
-
-    if (!element) {
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !started) {
-          setStarted(true);
-        }
-      },
-      {
-        threshold: 0.3,
-      }
-    );
-
-    observer.observe(element);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [started]);
-
-  useEffect(() => {
-    if (!started) {
-      return;
-    }
-
-    let animationFrame: number;
-    const startTime = performance.now();
-
-    const animate = (currentTime: number) => {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-
-      const easeOut = 1 - Math.pow(1 - progress, 3);
-      const currentValue = Math.floor(easeOut * value);
-
-      setDisplayValue(currentValue);
-
-      if (progress < 1) {
-        animationFrame = requestAnimationFrame(animate);
-      } else {
-        setDisplayValue(value);
-      }
-    };
-
-    animationFrame = requestAnimationFrame(animate);
-
-    return () => {
-      cancelAnimationFrame(animationFrame);
-    };
-  }, [started, value, duration]);
-
-  return <span ref={ref}>{displayValue.toLocaleString()}</span>;
-}
-
-/* =========================
-   Dashboard
-========================= */
 
 function Dashboard({
   darkMode,
   setDarkMode,
+  currentPage,
+  setCurrentPage,
+
+  // Shared analysis state
+  analyzed,
+  setAnalyzed,
+  analyzedAppId,
+  setAnalyzedAppId,
 }: DashboardProps) {
-  const [appId, setAppId] = useState("");
+  // ==================================================
+  // APP ID
+  // ==================================================
+  // Start with the App ID saved in App.tsx.
+  //
+  // This is useful because Dashboard can be unmounted
+  // when the user switches to Analytics. When they return,
+  // the analyzed App ID is still available.
+  // ==================================================
+  const [appId, setAppId] = useState(analyzedAppId);
+
+  // ==================================================
+  // LOADING
+  // ==================================================
   const [loading, setLoading] = useState(false);
-  const [analyzed, setAnalyzed] = useState(false);
 
-  /* =====================================================
-     BACKEND DATA
-     =====================================================
-
-     The values below are currently hardcoded for the
-     frontend demo.
-
-     BACKEND TEAM:
-     These values should eventually come from FastAPI.
-
-     Expected backend data:
-     - Game name
-     - Steam App ID
-     - Total reviews
-     - Positive reviews
-     - Negative reviews
-     - Positive percentage
-     - Negative percentage
-     - Top issues
-     - Review quality
-     - Recent feedback
-     - Analysis summary
-
-     The React frontend should receive this data from
-     FastAPI instead of hardcoding it here.
-  ===================================================== */
-
-  /* =========================
-     Game Name
-  ========================= */
-
-  /*
-    BACKEND:
-
-    This is currently a temporary frontend mapping.
-
-    The backend should eventually return the actual
-    Steam game name based on the App ID.
-
-    Example backend value:
-      game_name: "Path of Exile 2"
-  */
+  // ==================================================
+  // GAME NAME
+  // ==================================================
+  // BACKEND:
+  // Eventually the backend should return the real Steam
+  // game name based on the App ID.
+  //
+  // For now, Path of Exile 2 is used as the demo game.
+  // ==================================================
+  const displayedAppId = analyzed
+    ? analyzedAppId
+    : appId.trim();
 
   const gameName =
-    appId.trim() === "2694490"
+    displayedAppId === "2694490"
       ? "Path of Exile 2"
-      : `Steam Game ${appId}`;
+      : displayedAppId
+        ? `Steam Game ${displayedAppId}`
+        : "Enter a Steam App ID";
 
-  /* =========================
-     Review Statistics
-  ========================= */
+  // ==================================================
+  // DEMO REVIEW DATA
+  // ==================================================
+  // BACKEND:
+  // Replace this with the actual response from MySQL.
+  // ==================================================
+  const reviewData = {
+    totalReviews: 1284,
+    positiveReviews: 925,
+    negativeReviews: 359,
+    positivePercentage: 72,
+    negativePercentage: 28,
+  };
 
-  /*
-    BACKEND:
-
-    Replace these hardcoded values with data calculated
-    from the reviews stored in MySQL.
-
-    Your reviews table contains:
-
-      recommended BOOLEAN
-
-    TRUE  = Positive review
-    FALSE = Negative review
-
-    Backend can calculate:
-      - Total reviews
-      - Positive reviews
-      - Negative reviews
-      - Positive percentage
-      - Negative percentage
-  */
-
-  const reviewData = [
-    {
-      name: "Reviews",
-
-      // BACKEND: Replace 925 with positive_reviews
-      Positive: 925,
-
-      // BACKEND: Replace 359 with negative_reviews
-      Negative: 359,
-    },
-  ];
-
-  /* =========================
-     Top Issues
-  ========================= */
-
-  /*
-    BACKEND:
-
-    Replace these hardcoded issues with the issues
-    identified by the review-analysis system.
-
-    Example:
-
-      top_issues: [
-        {
-          issue: "Inventory Problems",
-          reports: 1284
-        }
-      ]
-
-    These issues are not directly stored in the
-    reviews table. They will need to be generated
-    by the backend analysis.
-  */
-
+  // ==================================================
+  // TOP ISSUES
+  // ==================================================
+  // BACKEND:
+  // These will eventually be calculated from the
+  // filtered Steam reviews.
+  // ==================================================
   const topIssues = [
     {
-      // BACKEND: Replace with issue returned by API
-      issue: "Inventory Problems",
-
-      // BACKEND: Replace with number of reports
-      reports: 1284,
+      name: "Performance",
+      count: 932,
     },
     {
-      // BACKEND: Replace with issue returned by API
-      issue: "Performance Issues",
-
-      // BACKEND: Replace with number of reports
-      reports: 932,
+      name: "Inventory",
+      count: 821,
     },
     {
-      // BACKEND: Replace with issue returned by API
-      issue: "Multiplayer Issues",
-
-      // BACKEND: Replace with number of reports
-      reports: 641,
+      name: "Bugs",
+      count: 523,
     },
     {
-      // BACKEND: Replace with issue returned by API
-      issue: "Bugs",
-
-      // BACKEND: Replace with number of reports
-      reports: 523,
+      name: "Multiplayer",
+      count: 482,
     },
   ];
 
-  /* =========================
-     Recent Feedback
-  ========================= */
-
-  /*
-    BACKEND:
-
-    Replace these example reviews with actual review
-    data returned by FastAPI.
-
-    MySQL fields that can be used here:
-
-      review_text
-      recommended
-
-    Example:
-
-      review_text → displayed review text
-      recommended → Positive / Negative
-  */
-
+  // ==================================================
+  // RECENT FEEDBACK
+  // ==================================================
+  // BACKEND:
+  // These should eventually come from MySQL.
+  //
+  // Steam IDs are intentionally NOT displayed because
+  // the project treats reviews as anonymous.
+  // ==================================================
   const recentFeedback = [
     {
-      // BACKEND: Determine this from the "recommended" field
-      type: "Negative",
-
-      // BACKEND: Replace with review_text
-      text: "The inventory system is difficult to use.",
+      type: "positive",
+      text: "The combat system and overall gameplay are excellent.",
     },
     {
-      // BACKEND: Determine this from the "recommended" field
-      type: "Negative",
-
-      // BACKEND: Replace with review_text
-      text: "Performance drops whenever there are too many players.",
+      type: "negative",
+      text: "Performance problems make the game difficult to enjoy.",
     },
     {
-      // BACKEND: Determine this from the "recommended" field
-      type: "Positive",
-
-      // BACKEND: Replace with review_text
-      text: "The new crafting system makes progression much more enjoyable.",
+      type: "positive",
+      text: "Great graphics and a lot of content to explore.",
     },
   ];
 
-  /* =====================================================
-     BACKEND CONNECTION
-     =====================================================
-
-     Currently this function only simulates an analysis.
-
-     BACKEND TEAM:
-
-     Replace the setTimeout() with a fetch() request
-     to your FastAPI backend.
-
-     Frontend should send:
-
-       appId
-
-     Backend should return:
-
-       game_name
-       app_id
-       total_reviews
-       positive_reviews
-       negative_reviews
-       positive_percentage
-       negative_percentage
-       top_issues
-       review_quality
-       recent_feedback
-       summary
-  ===================================================== */
-
+  // ==================================================
+  // ANALYZE GAME
+  // ==================================================
   const handleAnalyze = () => {
-    if (!appId.trim()) {
+    const trimmedAppId = appId.trim();
+
+    // Don't analyze an empty App ID
+    if (!trimmedAppId) {
       return;
     }
 
     setLoading(true);
-    setAnalyzed(false);
 
-    /*
-      BACKEND:
-
-      Remove this temporary setTimeout() when FastAPI
-      is connected.
-
-      Replace it with something similar to:
-
-        fetch("YOUR_FASTAPI_ENDPOINT", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            app_id: appId,
-          }),
-        })
-
-      The response should then be stored in React
-      state and used to populate the dashboard.
-    */
+    // ==================================================
+    // BACKEND:
+    //
+    // Eventually replace this simulated timeout with
+    // your actual backend request.
+    //
+    // Example:
+    //
+    // fetch(`/api/analyze/${trimmedAppId}`)
+    //
+    // The backend should:
+    //
+    // 1. Receive Steam App ID
+    // 2. Collect Steam reviews
+    // 3. Filter low-quality reviews
+    // 4. Store/read reviews from MySQL
+    // 5. Calculate analytics
+    // 6. Return the results
+    // ==================================================
 
     setTimeout(() => {
       setLoading(false);
+
+      // Tell App.tsx that analysis is complete.
       setAnalyzed(true);
+
+      // Save the App ID in App.tsx.
+      //
+      // Analytics will receive this same value.
+      setAnalyzedAppId(trimmedAppId);
 
       window.scrollTo({
         top: 0,
+        left: 0,
         behavior: "smooth",
       });
     }, 2000);
   };
 
-  /* =========================
-     Re-analyze
-  ========================= */
-
-  /*
-    BACKEND:
-
-    This can eventually send the same App ID back
-    to the backend to run the analysis again.
-  */
-
+  // ==================================================
+  // RE-ANALYZE
+  // ==================================================
   const handleReanalyze = () => {
-    if (!appId.trim()) {
-      return;
-    }
-
     handleAnalyze();
   };
 
   return (
-    <div className={`app ${darkMode ? "dark-mode" : ""}`}>
+    <div className="dashboard-page">
+      {/* ==================================================
+          NAVBAR
+          ================================================== */}
       <Navbar
         darkMode={darkMode}
         setDarkMode={setDarkMode}
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
       />
 
-      <main className="dashboard">
-        <Reveal>
-          <header className="dashboard-header">
-            <div>
-              <h1>Game Feedback Analysis</h1>
+      {/* ==================================================
+          MAIN CONTENT
+          ================================================== */}
+      <main className="dashboard-main">
+        {/* ==================================================
+            PAGE HEADER
+            ================================================== */}
+        <section className="dashboard-header">
+          <div>
+            <span className="dashboard-label">GAMESCOPE</span>
 
-              <p>
-                Analyze player feedback and identify the issues that matter
-                most.
-              </p>
-            </div>
-          </header>
-        </Reveal>
+            <h1>Game Review Dashboard</h1>
 
-        <Reveal delay={100}>
-          <section className="analyze-card">
-            <div className="analyze-header">
-              <h2>Analyze a Steam Game</h2>
+            <p>
+              Analyze Steam player reviews and discover meaningful
+              feedback about a game.
+            </p>
+          </div>
+        </section>
+
+        {/* ==================================================
+            ANALYZE CARD
+            ================================================== */}
+        <section className="analyze-card">
+          <div className="analyze-content">
+            <div className="analyze-title">
+              <h2>Analyze a Game</h2>
 
               <p>
                 Enter a Steam App ID to analyze player reviews.
@@ -463,469 +253,241 @@ function Dashboard({
             <div className="search-container">
               <input
                 type="text"
-                placeholder="Enter Steam App ID"
                 value={appId}
-                onChange={(e) => setAppId(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
+                onChange={(event) => setAppId(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
                     handleAnalyze();
                   }
                 }}
+                placeholder="Enter Steam App ID..."
+                disabled={loading}
               />
 
               <button
+                type="button"
                 onClick={handleAnalyze}
-                disabled={loading}
+                disabled={loading || !appId.trim()}
               >
                 {loading ? "Analyzing..." : "Analyze"}
               </button>
             </div>
-          </section>
-        </Reveal>
 
+            <p className="app-id-help">
+              Example: <strong>2694490</strong> for Path of Exile 2
+            </p>
+          </div>
+        </section>
+
+        {/* ==================================================
+            LOADING
+            ================================================== */}
         {loading && (
-          <Reveal>
-            <section className="loading-card">
-              <div className="spinner"></div>
+          <section className="loading-card">
+            <div className="loading-spinner"></div>
 
-              <h3>Analyzing player feedback...</h3>
+            <h3>Analyzing Reviews...</h3>
 
-              <p>
-                Collecting and processing Steam reviews. This may take a
-                moment.
-              </p>
-            </section>
-          </Reveal>
+            <p>
+              Collecting and processing player feedback.
+            </p>
+          </section>
         )}
 
+        {/* ==================================================
+            ANALYZED GAME
+            ================================================== */}
         {analyzed && !loading && (
           <>
-            <Reveal>
-              <section className="game-status">
-                <div className="game-icon">
-                  🎮
-                </div>
+            {/* ==================================================
+                GAME STATUS
+                ================================================== */}
+            <section className="game-status">
+              <div>
+                <span className="status-label">
+                  CURRENTLY ANALYZED
+                </span>
 
-                <div>
-                  <h2>Game Analysis Complete</h2>
+                <h2>{gameName}</h2>
 
-                  <p>
-                    {/* BACKEND: Replace gameName with game_name from API */}
-                    <strong>{gameName}</strong>
-                  </p>
+                <p>
+                  Steam App ID:{" "}
+                  <strong>{analyzedAppId}</strong>
+                </p>
+              </div>
 
-                  <p>
-                    {/* BACKEND: Replace appId with app_id from API if needed */}
-                    Steam App ID: <strong>{appId}</strong>
-                  </p>
-                </div>
-
-                <div className="analysis-status">
-                  <span className="status-badge">
-                    Analyzed
-                  </span>
-
-                  <small className="analyzed-time">
-                    Just now
-                  </small>
-                </div>
-              </section>
-            </Reveal>
-
-            {/* =================================================
-                STATISTICS
-
-                BACKEND:
-                Replace the hardcoded numbers below with values
-                returned from FastAPI.
-            ================================================= */}
-
-            <Reveal delay={100}>
-              <section className="stats-grid">
-                <div className="stat-card">
-                  <span className="stat-label">
-                    Total Reviews
-                  </span>
-
-                  <strong>
-                    {/* BACKEND: Replace 1284 with total_reviews */}
-                    <AnimatedNumber value={1284} />
-                  </strong>
-
-                  <small>
-                    {/* BACKEND: Replace with actual analyzed count */}
-                    Analyzed reviews
-                  </small>
-                </div>
-
-                <div className="stat-card positive-stat">
-                  <span className="stat-label">
-                    Positive
-                  </span>
-
-                  <strong>
-                    {/* BACKEND: Replace 72 with positive_percentage */}
-                    <AnimatedNumber value={72} />
-                    %
-                  </strong>
-
-                  <small>
-                    {/* BACKEND: Replace 925 with positive_reviews */}
-                    925 reviews
-                  </small>
-                </div>
-
-                <div className="stat-card negative-stat">
-                  <span className="stat-label">
-                    Negative
-                  </span>
-
-                  <strong>
-                    {/* BACKEND: Replace 28 with negative_percentage */}
-                    <AnimatedNumber value={28} />
-                    %
-                  </strong>
-
-                  <small>
-                    {/* BACKEND: Replace 359 with negative_reviews */}
-                    359 reviews
-                  </small>
-                </div>
-              </section>
-            </Reveal>
-
-            {/* =================================================
-                ANALYSIS SUMMARY
-
-                BACKEND:
-                Replace the hardcoded summary below with the
-                summary generated by the backend analysis.
-            ================================================= */}
-
-            <Reveal delay={150}>
-              <section className="analysis-summary">
-                <div className="summary-icon">
-                  !
-                </div>
-
-                <div className="summary-content">
-                  <span className="summary-label">
-                    Analysis Summary
-                  </span>
-
-                  <p>
-                    {/* BACKEND:
-                        Replace this entire sentence with
-                        summary returned by FastAPI. */}
-
-                    <strong>Inventory Problems</strong> are currently the
-                    most frequently reported issue in the analyzed feedback.
-                  </p>
-                </div>
-
-                <button
-                  className="reanalyze-button"
-                  onClick={handleReanalyze}
-                  disabled={loading}
-                >
-                  ↻ Re-analyze
-                </button>
-              </section>
-            </Reveal>
-
-            <section className="dashboard-content">
-              {/* =================================================
-                  REVIEW SENTIMENT CHART
-
-                  BACKEND:
-                  Replace reviewData with review statistics
-                  returned by FastAPI.
-              ================================================= */}
-
-              <Reveal delay={100}>
-                <div className="dashboard-card chart-card">
-                  <div className="card-header">
-                    <div>
-                      <h2>Review Sentiment</h2>
-
-                      <p>
-                        Positive vs. negative player feedback.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="chart-container animated-bar-chart">
-                    <ResponsiveContainer
-                      width="100%"
-                      height={300}
-                    >
-                      <BarChart
-                        data={reviewData}
-                        margin={{
-                          top: 10,
-                          right: 20,
-                          left: 0,
-                          bottom: 10,
-                        }}
-                      >
-                        <CartesianGrid
-                          strokeDasharray="3 3"
-                        />
-
-                        <XAxis dataKey="name" />
-
-                        <YAxis />
-
-                        <Tooltip />
-
-                        <Bar
-                          dataKey="Positive"
-                          name="Positive"
-                          fill="#22c55e"
-                          radius={[
-                            6,
-                            6,
-                            0,
-                            0,
-                          ]}
-                          animationDuration={1400}
-                          animationBegin={200}
-                          animationEasing="ease-out"
-                        />
-
-                        <Bar
-                          dataKey="Negative"
-                          name="Negative"
-                          fill="#ef4444"
-                          radius={[
-                            6,
-                            6,
-                            0,
-                            0,
-                          ]}
-                          animationDuration={1400}
-                          animationBegin={350}
-                          animationEasing="ease-out"
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </Reveal>
-
-              {/* =================================================
-                  TOP ISSUES
-
-                  BACKEND:
-                  Replace topIssues with the issues returned
-                  by the review-analysis backend.
-              ================================================= */}
-
-              <Reveal delay={200}>
-                <div className="dashboard-card issues-card">
-                  <div className="card-header">
-                    <div>
-                      <h2>Top Issues</h2>
-
-                      <p>
-                        Most frequently mentioned problems.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="issues-list">
-                    {topIssues.map(
-                      (item, index) => (
-                        <div
-                          className="issue-item"
-                          key={item.issue}
-                        >
-                          <div className="issue-number">
-                            {index + 1}
-                          </div>
-
-                          <div className="issue-info">
-                            <div className="issue-title-row">
-                              <span>
-                                {item.issue}
-                              </span>
-
-                              <strong>
-                                {/* BACKEND:
-                                    Replace item.reports with
-                                    reports returned by API. */}
-
-                                <AnimatedNumber
-                                  value={item.reports}
-                                />
-                              </strong>
-                            </div>
-
-                            <div className="issue-progress">
-                              <div
-                                className="issue-progress-fill"
-                                style={{
-                                  /*
-                                    BACKEND:
-
-                                    Replace the hardcoded 1284
-                                    with the appropriate total
-                                    returned by the backend.
-
-                                    For example:
-
-                                    item.reports /
-                                    analysisData.total_reviews
-                                  */
-
-                                  width: `${Math.max(
-                                    25,
-                                    (item.reports /
-                                      1284) *
-                                      100
-                                  )}%`,
-                                }}
-                              ></div>
-                            </div>
-                          </div>
-                        </div>
-                      )
-                    )}
-                  </div>
-                </div>
-              </Reveal>
+              <button
+                type="button"
+                onClick={handleReanalyze}
+                disabled={loading || !appId.trim()}
+              >
+                Re-analyze
+              </button>
             </section>
 
-            {/* =================================================
-                REVIEW QUALITY
+            {/* ==================================================
+                SUMMARY STATS
+                ================================================== */}
+            <section className="stats-grid">
+              <div className="stat-card">
+                <span className="stat-label">
+                  TOTAL REVIEWS
+                </span>
 
-                BACKEND:
-                Replace 78 with review_quality returned
-                by FastAPI.
-            ================================================= */}
+                <strong className="stat-value">
+                  {reviewData.totalReviews.toLocaleString()}
+                </strong>
+              </div>
 
-            <Reveal delay={100}>
-              <section className="dashboard-card quality-card">
-                <div className="quality-content">
-                  <div>
-                    <h2>Review Quality</h2>
+              <div className="stat-card">
+                <span className="stat-label">
+                  POSITIVE REVIEWS
+                </span>
 
-                    <p>
-                      Overall quality score based on review usefulness,
-                      detail, and consistency.
-                    </p>
-                  </div>
+                <strong className="stat-value">
+                  {reviewData.positivePercentage}%
+                </strong>
 
-                  <div className="quality-score">
-                    <div
-                      className="quality-circle"
-                      style={
-                        {
-                          /*
-                            BACKEND:
+                <span className="stat-detail">
+                  {reviewData.positiveReviews.toLocaleString()} reviews
+                </span>
+              </div>
 
-                            The 78% value is currently hardcoded.
+              <div className="stat-card">
+                <span className="stat-label">
+                  NEGATIVE REVIEWS
+                </span>
 
-                            Eventually this should use something
-                            like:
+                <strong className="stat-value">
+                  {reviewData.negativePercentage}%
+                </strong>
 
-                              analysisData.review_quality
+                <span className="stat-detail">
+                  {reviewData.negativeReviews.toLocaleString()} reviews
+                </span>
+              </div>
+            </section>
 
-                            The CSS animation may also need to
-                            receive this value dynamically.
-                          */
+            {/* ==================================================
+                REVIEW SUMMARY
+                ================================================== */}
+            <section className="analysis-summary">
+              <div>
+                <span className="summary-label">
+                  ANALYSIS SUMMARY
+                </span>
 
-                          "--quality-progress":
-                            "78%",
-                        } as React.CSSProperties
-                      }
-                    >
-                      <span>
-                        {/* BACKEND: Replace 78 with review_quality */}
-                        <AnimatedNumber value={78} />%
-                      </span>
-                    </div>
+                <h2>What are players saying?</h2>
 
-                    <div>
+                <p>
+                  The analyzed reviews contain both positive and
+                  negative player feedback. The most frequently
+                  mentioned issues can help identify areas that
+                  may require further attention.
+                </p>
+              </div>
+
+              <div className="summary-stat">
+                <strong>
+                  {reviewData.positivePercentage}%
+                </strong>
+
+                <span>Recommended</span>
+              </div>
+            </section>
+
+            {/* ==================================================
+                TOP ISSUES
+                ================================================== */}
+            <section className="dashboard-card">
+              <div className="card-header">
+                <div>
+                  <span className="card-label">
+                    REVIEW ANALYSIS
+                  </span>
+
+                  <h2>Top Issues</h2>
+                </div>
+              </div>
+
+              <div className="issue-list">
+                {topIssues.map((issue) => (
+                  <div
+                    className="issue-item"
+                    key={issue.name}
+                  >
+                    <div className="issue-info">
+                      <span>{issue.name}</span>
+
                       <strong>
-                        {/* BACKEND:
-                            This description can eventually be
-                            generated based on review_quality. */}
-
-                        Good Quality
+                        {issue.count.toLocaleString()}
                       </strong>
+                    </div>
 
-                      <p>
-                        {/* BACKEND:
-                            Replace with quality description
-                            returned/calculated by backend. */}
-
-                        Most reviews provide useful feedback.
-                      </p>
+                    <div className="issue-bar">
+                      <div
+                        className="issue-bar-fill"
+                        style={{
+                          width: `${
+                            (issue.count / topIssues[0].count) *
+                            100
+                          }%`,
+                        }}
+                      />
                     </div>
                   </div>
-                </div>
-              </section>
-            </Reveal>
+                ))}
+              </div>
+            </section>
 
-            {/* =================================================
+            {/* ==================================================
                 RECENT FEEDBACK
+                ================================================== */}
+            <section className="dashboard-card">
+              <div className="card-header">
+                <div>
+                  <span className="card-label">
+                    PLAYER FEEDBACK
+                  </span>
 
-                BACKEND:
-                Replace recentFeedback with review data
-                returned from FastAPI.
+                  <h2>Recent Feedback</h2>
+                </div>
+              </div>
 
-                MySQL fields:
-                - review_text
-                - recommended
-                - helpful_votes
-                - playtime_hours
-                - playtime_at_review_hours
+              <div className="feedback-list">
+                {recentFeedback.map((feedback, index) => (
+                  <div
+                    className="feedback-item"
+                    key={index}
+                  >
+                    <span
+                      className={`feedback-type ${feedback.type}`}
+                    >
+                      {feedback.type === "positive"
+                        ? "Positive"
+                        : "Negative"}
+                    </span>
 
-                The backend can use these fields to determine
-                which reviews are useful to display.
-            ================================================= */}
-
-            <Reveal delay={100}>
-              <section className="dashboard-card feedback-card">
-                <div className="card-header">
-                  <div>
-                    <h2>Recent Feedback</h2>
-
-                    <p>
-                      Examples of recently analyzed player reviews.
-                    </p>
+                    <p>{feedback.text}</p>
                   </div>
-                </div>
-
-                <div className="feedback-list">
-                  {recentFeedback.map(
-                    (feedback, index) => (
-                      <div
-                        className="feedback-item"
-                        key={`${feedback.text}-${index}`}
-                      >
-                        <span
-                          className={`feedback-type ${
-                            feedback.type ===
-                            "Positive"
-                              ? "feedback-positive"
-                              : "feedback-negative"
-                          }`}
-                        >
-                          {feedback.type}
-                        </span>
-
-                        <p>
-                          "{feedback.text}"
-                        </p>
-                      </div>
-                    )
-                  )}
-                </div>
-              </section>
-            </Reveal>
+                ))}
+              </div>
+            </section>
           </>
+        )}
+
+        {/* ==================================================
+            BEFORE ANALYSIS
+            ================================================== */}
+        {!analyzed && !loading && (
+          <section className="dashboard-empty">
+            <h2>Ready to analyze a game?</h2>
+
+            <p>
+              Enter a Steam App ID above to begin analyzing
+              player reviews.
+            </p>
+          </section>
         )}
       </main>
     </div>

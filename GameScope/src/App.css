@@ -1,17 +1,6 @@
-* {
-  box-sizing: border-box;
-}
-
-html {
-  scroll-behavior: smooth;
-  overflow-x: hidden;
-}
-
-body {
-  margin: 0;
-  min-width: 320px;
-  overflow-x: hidden;
-}
+/* =========================================================
+   APP
+========================================================= */
 
 #root {
   width: 100%;
@@ -21,4 +10,65 @@ body {
 .app-container {
   width: 100%;
   min-height: 100vh;
+
+  --page-bg: #f7f7f8;
+  --card-bg: #ffffff;
+  --input-bg: #f3f4f6;
+
+  --text-primary: #171717;
+  --text-secondary: #737373;
+
+  background: var(--page-bg);
+  color: var(--text-primary);
+
+  transition:
+    background 0.3s ease,
+    color 0.3s ease;
+}
+
+
+/* =========================================================
+   DARK MODE
+========================================================= */
+
+.app-container.dark-mode {
+  --page-bg: #0f0f10;
+  --card-bg: #18181b;
+  --input-bg: #242427;
+
+  --text-primary: #f4f4f5;
+  --text-secondary: #a1a1aa;
+
+  background: #0f0f10;
+  color: #f4f4f5;
+}
+
+
+/* =========================================================
+   GLOBAL
+========================================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+
+  background: var(--page-bg);
+  color: var(--text-primary);
+
+  transition:
+    background 0.3s ease,
+    color 0.3s ease;
+}
+
+button,
+input {
+  font-family: inherit;
 }
