@@ -1,6 +1,8 @@
 NOTE: for some reason npm will not work so we use npm.cmd then perform the action. 
       must be in a directory when you install a package (Ex. package.json)
 
+
+AFTER GIT CLONE:
 npm.cmd install -D vite
 Remove-Item -Recurse -Force node_modules
 Remove-Item -Force package-lock.json
