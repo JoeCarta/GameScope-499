@@ -44,6 +44,8 @@ interface AnalyticsProps {
   */
   analyzed: boolean;
   analyzedAppId: string;
+  onLogoClick: () => void;
+
 }
 
 /* =========================================================
@@ -261,6 +263,7 @@ function Analytics({
   setCurrentPage,
   analyzed,
   analyzedAppId,
+  onLogoClick
 }: AnalyticsProps) {
   /* =========================================================
      GAME INFORMATION
@@ -700,6 +703,7 @@ function Analytics({
         setDarkMode={setDarkMode}
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
+        onLogoClick={onLogoClick}
       />
 
       <main className="analytics-main">

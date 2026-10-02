@@ -58,6 +58,16 @@ function App() {
     });
   };
 
+  const handleLogoClick = () => {
+    setShowIntro(true);
+
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "smooth",
+    });
+  };
+
   return (
     <div className={`app-container ${darkMode ? "dark-mode" : ""}`}>
       {/* ==================================================
@@ -80,8 +90,8 @@ function App() {
               setDarkMode={setDarkMode}
               currentPage={currentPage}
               setCurrentPage={setCurrentPage}
+              onLogoClick={handleLogoClick}
 
-              // Shared analysis state
               analyzed={analyzed}
               setAnalyzed={setAnalyzed}
               analyzedAppId={analyzedAppId}
@@ -98,6 +108,8 @@ function App() {
               setDarkMode={setDarkMode}
               currentPage={currentPage}
               setCurrentPage={setCurrentPage}
+              onLogoClick={handleLogoClick}
+
 
               // Analytics receives the same shared state
               analyzed={analyzed}

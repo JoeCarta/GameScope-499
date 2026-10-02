@@ -1,48 +1,65 @@
 /* =========================
-NAVBAR
+   NAVBAR
 ========================= */
 
 .navbar {
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-height: 76px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 76px;
 
-display: flex;
-align-items: center;
+  display: flex;
+  align-items: center;
 
-padding: 0 32px;
+  padding: 0 32px;
 
-background: rgba(255, 255, 255, 0.94);
-backdrop-filter: blur(18px);
--webkit-backdrop-filter: blur(18px);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 
-/* Borderless design */
-border: none;
+  /* Borderless design */
+  border: none;
 
-color: #111827;
+  color: #111827;
 
-z-index: 1000;
+  z-index: 1000;
 
-box-shadow:
-0 4px 20px rgba(15, 23, 42, 0.04);
+  box-shadow:
+    0 4px 20px rgba(15, 23, 42, 0.04);
 
-transition:
-background 0.3s ease,
-box-shadow 0.3s ease,
-color 0.3s ease;
+  transition:
+    background 0.3s ease,
+    box-shadow 0.3s ease,
+    color 0.3s ease;
+
+  /* Navbar entrance */
+  animation: navbarEnter 0.55s ease-out;
 }
 
 /* =========================
-LOGO
+   LOGO
 ========================= */
 
 .navbar-logo {
+  border: none;
+  outline: none;
+  background: transparent;
+
+  padding: 0;
+  margin: 0;
+
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
+
+  font: inherit;
+  color: inherit;
+  text-align: left;
+
+  cursor: pointer;
+
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .navbar-logo img {
@@ -57,344 +74,540 @@ LOGO
   white-space: nowrap;
 }
 
-.logo-icon span {
-position: relative;
-z-index: 1;
+.logo-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-font-size: 21px;
-font-weight: 800;
-letter-spacing: -1px;
+  flex-shrink: 0;
+
+  animation: logoEnter 0.65s ease-out;
+}
+
+.logo-icon span {
+  position: relative;
+  z-index: 1;
+
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -1px;
 }
 
 .logo-text {
-display: flex;
-flex-direction: column;
-gap: 1px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+
+  margin-left: 9px;
+
+  animation: logoTextEnter 0.65s ease-out;
 }
 
 .logo-text h2 {
-margin: 0;
+  margin: 0;
 
-font-size: 17px;
-line-height: 1;
-font-weight: 750;
-letter-spacing: -0.4px;
+  font-size: 17px;
+  line-height: 1;
+
+  font-weight: 750;
+  letter-spacing: -0.4px;
 }
 
 .logo-text span {
-color: #94a3b8;
+  color: #94a3b8;
 
-font-size: 10px;
-font-weight: 600;
+  font-size: 10px;
+  font-weight: 600;
 
-letter-spacing: 0.4px;
-text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+/* Keep logo completely neutral on hover */
+.navbar-logo:hover {
+  background: transparent;
+  opacity: 1;
+  transform: none;
+}
+
+/* Remove focus styling */
+.navbar-logo:focus,
+.navbar-logo:focus-visible {
+  outline: none;
+  border: none;
+  box-shadow: none;
 }
 
 /* =========================
-MENU
+   MENU
 ========================= */
 
 .navbar-menu {
-display: flex;
-align-items: center;
+  display: flex;
+  align-items: center;
 
-gap: 5px;
+  gap: 5px;
+  margin-left: 55px;
 
-margin-left: 55px;
-}
-
-.nav-item,
-.theme-toggle {
-position: relative;
-
-display: flex;
-align-items: center;
-
-gap: 9px;
-
-height: 42px;
-
-padding: 0 14px;
-
-border: none;
-border-radius: 10px;
-
-background: transparent;
-
-color: #64748b;
-
-font-family: inherit;
-font-size: 14px;
-font-weight: 550;
-
-text-decoration: none;
-
-cursor: pointer;
-
-transition:
-color 0.2s ease,
-background 0.2s ease,
-transform 0.2s ease;
+  animation: menuEnter 0.6s ease-out;
 }
 
 /* =========================
-HOVER
+   NAV ITEMS
+========================= */
+
+.nav-item,
+.theme-toggle {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  height: 42px;
+  padding: 0 14px;
+
+  border: none;
+  border-radius: 10px;
+
+  background: transparent;
+
+  color: #64748b;
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 550;
+
+  text-decoration: none;
+
+  cursor: pointer;
+
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* Individual entrance animation */
+
+.nav-item:nth-child(1) {
+  animation: navItemEnter 0.45s ease-out 0.12s both;
+}
+
+.nav-item:nth-child(2) {
+  animation: navItemEnter 0.45s ease-out 0.18s both;
+}
+
+.nav-item:nth-child(3) {
+  animation: navItemEnter 0.45s ease-out 0.24s both;
+}
+
+.nav-item:nth-child(4) {
+  animation: navItemEnter 0.45s ease-out 0.30s both;
+}
+
+/* =========================
+   HOVER
 ========================= */
 
 .nav-item:hover,
 .theme-toggle:hover {
-color: #3730a3;
+  color: #3730a3;
 
-background: #f1f5f9;
+  background: #f1f5f9;
 
-transform: translateY(-1px);
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 4px 10px rgba(15, 23, 42, 0.05);
 }
 
 /* =========================
-ACTIVE NAV
+   ACTIVE NAV
 ========================= */
 
 .nav-item.active {
-color: #4f46e5;
+  color: #4f46e5;
 
-background: #eef2ff;
+  background: #eef2ff;
 
-font-weight: 650;
+  font-weight: 650;
+
+  transition:
+    color 0.25s ease,
+    background 0.25s ease,
+    transform 0.25s ease;
 }
 
 .nav-item.active::after {
-content: "";
+  content: "";
 
-position: absolute;
+  position: absolute;
 
-bottom: -17px;
-left: 50%;
+  bottom: -17px;
+  left: 50%;
 
-width: 20px;
-height: 3px;
+  width: 20px;
+  height: 3px;
 
-border-radius: 5px;
+  border-radius: 5px;
 
-background: #4f46e5;
+  background: #4f46e5;
 
-transform: translateX(-50%);
+  transform: translateX(-50%);
 
-animation: activeIndicator 0.35s ease;
+  animation: activeIndicator 0.35s ease;
 }
 
 /* =========================
-ICONS
+   ICONS
 ========================= */
 
 .nav-icon {
-width: 19px;
-height: 19px;
+  width: 19px;
+  height: 19px;
 
-display: flex;
-align-items: center;
-justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-flex-shrink: 0;
+  flex-shrink: 0;
 }
 
 .nav-icon svg {
-width: 18px;
-height: 18px;
+  width: 18px;
+  height: 18px;
 
-fill: none;
+  fill: none;
 
-stroke: currentColor;
+  stroke: currentColor;
 
-stroke-width: 1.8;
+  stroke-width: 1.8;
 
-stroke-linecap: round;
-stroke-linejoin: round;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 
-transition:
-transform 0.2s ease;
+  transition:
+    transform 0.25s ease,
+    stroke-width 0.25s ease;
 }
 
 .nav-item:hover .nav-icon svg,
 .theme-toggle:hover .nav-icon svg {
-transform: scale(1.08);
+  transform: scale(1.12);
+}
+
+/* Small icon rotation for theme toggle */
+
+.theme-toggle:hover .nav-icon svg {
+  transform: rotate(12deg) scale(1.1);
 }
 
 /* =========================
-BOTTOM / RIGHT
+   BOTTOM / RIGHT
 ========================= */
 
 .navbar-bottom {
-display: flex;
-align-items: center;
+  display: flex;
+  align-items: center;
 
-gap: 5px;
+  gap: 5px;
 
-margin-left: auto;
+  margin-left: auto;
+
+  animation: menuEnter 0.6s ease-out 0.2s both;
 }
 
 .theme-toggle {
-color: #64748b;
+  color: #64748b;
 }
 
 /* =========================
-DARK MODE
+   DARK MODE
 ========================= */
 
 .dark-navbar {
-background: rgba(15, 15, 16, 0.94);
+  background: rgba(15, 15, 16, 0.94);
 
-/* Borderless */
-border: none;
+  border: none;
 
-color: #f8fafc;
+  color: #f8fafc;
 
-box-shadow:
-0 4px 20px rgba(0, 0, 0, 0.18);
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.18);
 }
 
 .dark-navbar .logo-text span {
-color: #64748b;
+  color: #64748b;
 }
 
 .dark-navbar .nav-item,
 .dark-navbar .theme-toggle {
-color: #94a3b8;
+  color: #94a3b8;
 }
 
 .dark-navbar .nav-item:hover,
 .dark-navbar .theme-toggle:hover {
-color: #c7d2fe;
+  color: #c7d2fe;
 
-background: #1e1e22;
+  background: #1e1e22;
 }
 
 .dark-navbar .nav-item.active {
-color: #a5b4fc;
+  color: #a5b4fc;
 
-background: #272452;
+  background: #272452;
 }
 
 .dark-navbar .nav-item.active::after {
-background: #818cf8;
+  background: #818cf8;
 }
 
 /* =========================
-ANIMATIONS
+   ANIMATIONS
 ========================= */
 
-@keyframes activeIndicator {
-from {
-width: 0;
-opacity: 0;
+/* Navbar slides down */
+
+@keyframes navbarEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-to {
-width: 20px;
-opacity: 1;
+/* Logo pops in */
+
+@keyframes logoEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.75);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
+
+/* Logo text slides in */
+
+@keyframes logoTextEnter {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Navigation slides in */
+
+@keyframes menuEnter {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Individual nav buttons */
+
+@keyframes navItemEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Active indicator */
+
+@keyframes activeIndicator {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+
+  to {
+    width: 20px;
+    opacity: 1;
+  }
 }
 
 /* =========================
-MOBILE
+   MOBILE
 ========================= */
 
 @media (max-width: 768px) {
-.navbar {
-top: 0;
-left: 0;
-width: 76px;
-height: 100dvh;
-padding: 20px 10px;
-flex-direction: column;
+  .navbar {
+    top: 0;
+    left: 0;
 
-/* Borderless */
-border: none;
-box-shadow:
-  4px 0 20px rgba(15, 23, 42, 0.04);
+    width: 76px;
+    height: 100dvh;
+
+    padding: 20px 10px;
+
+    flex-direction: column;
+
+    border: none;
+
+    box-shadow:
+      4px 0 20px rgba(15, 23, 42, 0.04);
+
+    animation: navbarMobileEnter 0.5s ease-out;
+  }
+
+  .navbar-logo {
+    justify-content: center;
+  }
+
+  .logo-text {
+    display: none;
+  }
+
+  .logo-icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .navbar-menu {
+    width: 100%;
+
+    flex-direction: column;
+
+    margin: 38px 0 0;
+
+    gap: 8px;
+
+    animation: menuMobileEnter 0.5s ease-out;
+  }
+
+  .nav-item,
+  .theme-toggle {
+    width: 54px;
+    height: 52px;
+
+    padding: 0;
+
+    justify-content: center;
+
+    border-radius: 12px;
+  }
+
+  .nav-text {
+    display: none;
+  }
+
+  .nav-item.active::after {
+    bottom: auto;
+
+    left: -10px;
+
+    width: 3px;
+    height: 22px;
+
+    transform: translateY(0);
+
+    border-radius: 0 5px 5px 0;
+  }
+
+  .navbar-bottom {
+    width: 100%;
+
+    flex-direction: column;
+
+    gap: 8px;
+
+    margin-top: auto;
+  }
+
+  .dark-navbar {
+    border: none;
+  }
 }
 
-.navbar-logo {
-justify-content: center;
+/* Mobile entrance */
+
+@keyframes navbarMobileEnter {
+  from {
+    opacity: 0;
+    transform: translateX(-15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
-.logo-text {
-display: none;
-}
+@keyframes menuMobileEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
 
-.logo-icon {
-width: 42px;
-height: 42px;
-}
-
-.navbar-menu {
-width: 100%;
-flex-direction: column;
-margin: 38px 0 0;
-gap: 8px;
-}
-
-.nav-item,
-.theme-toggle {
-width: 54px;
-height: 52px;
-padding: 0;
-justify-content: center;
-border-radius: 12px;
-
-}
-
-.nav-text {
-display: none;
-}
-
-.nav-item.active::after {
-bottom: auto;
-left: -10px;
-
-width: 3px;
-height: 22px;
-
-transform: translateY(0);
-
-border-radius: 0 5px 5px 0;
-
-}
-
-.navbar-bottom {
-width: 100%;
-flex-direction: column;
-gap: 8px;
-margin-top: auto;
-
-}
-
-.dark-navbar {
-border: none;
-}
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* =========================
-SMALL MOBILE
+   SMALL MOBILE
 ========================= */
 
 @media (max-width: 480px) {
-.navbar {
-width: 64px;
+  .navbar {
+    width: 64px;
 
-padding-left: 7px;
-padding-right: 7px;
+    padding-left: 7px;
+    padding-right: 7px;
+  }
 
+  .logo-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .nav-item,
+  .theme-toggle {
+    width: 48px;
+    height: 48px;
+  }
 }
 
-.logo-icon {
-width: 38px;
-height: 38px;
-}
+/* =========================
+   REDUCE MOTION
+========================= */
 
-.nav-item,
-.theme-toggle {
-width: 48px;
-height: 48px;
-}
+@media (prefers-reduced-motion: reduce) {
+  .navbar,
+  .logo-icon,
+  .logo-text,
+  .navbar-menu,
+  .navbar-bottom,
+  .nav-item {
+    animation: none;
+    transition: none;
+  }
 }

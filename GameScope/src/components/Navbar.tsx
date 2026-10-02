@@ -2,21 +2,24 @@ import "./Navbar.css";
 import logo from "../img/gamescope-logo-light.png";
 
 interface NavbarProps {
-darkMode: boolean;
-setDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
+  darkMode: boolean;
+  setDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
 
-currentPage: "dashboard" | "analytics";
+  currentPage: "dashboard" | "analytics";
 
-setCurrentPage: React.Dispatch<
-React.SetStateAction<"dashboard" | "analytics">
-> ;
+  setCurrentPage: React.Dispatch<
+    React.SetStateAction<"dashboard" | "analytics">
+  >;
+
+  onLogoClick: () => void;
 }
 
 function Navbar({
-darkMode,
-setDarkMode,
-currentPage,
-setCurrentPage,
+  darkMode,
+  setDarkMode,
+  currentPage,
+  setCurrentPage,
+  onLogoClick,
 }: NavbarProps) {
 return (
 <nav className={`navbar ${darkMode ? "dark-navbar" : ""}`}>
@@ -24,12 +27,21 @@ return (
 LOGO
 ================================================== */} 
 
-<div className="navbar-logo"> <div className="logo-icon"> <img src={logo} alt="GameScope logo" /></div>
-    <div className="logo-text">
-      <h2>GameScope</h2>
-      <span>Feedback Analyzer</span>
-    </div>
+<button
+  type="button"
+  className="navbar-logo"
+  onClick={onLogoClick}
+  aria-label="Go to GameScope home"
+>
+  <div className="logo-icon">
+    <img src={logo} alt="GameScope logo" />
   </div>
+
+  <div className="logo-text">
+    <h2>GameScope</h2>
+    <span>Feedback Analyzer</span>
+  </div>
+</button>
 
   {/* ==================================================
       MAIN NAVIGATION

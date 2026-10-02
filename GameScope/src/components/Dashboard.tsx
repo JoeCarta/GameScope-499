@@ -32,6 +32,9 @@ interface DashboardProps {
 
   // Allows Dashboard to save the App ID after analysis.
   setAnalyzedAppId: React.Dispatch<React.SetStateAction<string>>;
+
+  onLogoClick: () => void;
+
 }
 
 function Dashboard({
@@ -45,6 +48,7 @@ function Dashboard({
   setAnalyzed,
   analyzedAppId,
   setAnalyzedAppId,
+  onLogoClick
 }: DashboardProps) {
   // ==================================================
   // APP ID
@@ -215,6 +219,7 @@ function Dashboard({
         setDarkMode={setDarkMode}
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
+        onLogoClick={onLogoClick}
       />
 
       {/* ==================================================
