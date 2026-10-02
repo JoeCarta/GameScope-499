@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import "./Intro.css";
+import logo from "../img/gamescope-logo-light.png";
 
 interface IntroProps {
   darkMode: boolean;
@@ -70,7 +71,7 @@ function Intro({
       {/* Navigation */}
       <nav className="intro-nav">
         <div className="intro-brand">
-          <div className="intro-logo">G</div>
+          <div className="intro-logo"><img src={logo} alt="GameScope logo" /></div>
           <span>GameScope</span>
         </div>
 

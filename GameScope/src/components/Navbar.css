@@ -39,53 +39,22 @@ LOGO
 ========================= */
 
 .navbar-logo {
-display: flex;
-align-items: center;
-gap: 11px;
-
-flex-shrink: 0;
-user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
-.logo-icon {
-width: 40px;
-height: 40px;
-
-display: flex;
-align-items: center;
-justify-content: center;
-
-border-radius: 11px;
-
-background: linear-gradient(
-135deg,
-#6366f1,
-#4f46e5
-);
-
-color: white;
-
-box-shadow:
-0 5px 14px rgba(79, 70, 229, 0.25);
-
-position: relative;
-overflow: hidden;
+.navbar-logo img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
 }
 
-.logo-icon::after {
-content: "";
-
-position: absolute;
-
-width: 20px;
-height: 20px;
-
-top: -7px;
-right: -7px;
-
-border-radius: 50%;
-
-background: rgba(255, 255, 255, 0.18);
+.navbar-logo span {
+  font-size: 1.2rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .logo-icon span {

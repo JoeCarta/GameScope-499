@@ -1,4 +1,5 @@
 import "./Navbar.css";
+import logo from "../img/gamescope-logo-light.png";
 
 interface NavbarProps {
 darkMode: boolean;
@@ -21,7 +22,9 @@ return (
 <nav className={`navbar ${darkMode ? "dark-navbar" : ""}`}>
 {/* ==================================================
 LOGO
-================================================== */} <div className="navbar-logo"> <div className="logo-icon"> <span>G</span> </div>
+================================================== */} 
+
+<div className="navbar-logo"> <div className="logo-icon"> <img src={logo} alt="GameScope logo" /></div>
     <div className="logo-text">
       <h2>GameScope</h2>
       <span>Feedback Analyzer</span>

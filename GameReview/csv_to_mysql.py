@@ -73,60 +73,6 @@ print(f"Reviews found: {len(rows)}")
 
 
 # ==========================================
-# Check if table already exists
-# ==========================================
-
-cursor.execute(
-    """
-    SELECT COUNT(*)
-    FROM information_schema.tables
-    WHERE table_schema = 'game_reviews'
-    AND table_name = %s
-    """,
-    (table_name,)
-)
-
-table_exists = cursor.fetchone()[0] > 0
-
-
-# ==========================================
-# Stop if table already exists
-# ==========================================
-
-if table_exists:
-    print()
-    print(f"Table already exists: {table_name}")
-    print("Game has already been imported.")
-    print("Skipping import.")
-
-    cursor.close()
-    db.close()
-    exit()
-
-
-# ==========================================
-# Create table
-# ==========================================
-
-create_table_sql = f"""
-CREATE TABLE `{table_name}` (
-    review_id VARCHAR(255) NOT NULL,
-    app_id INT NOT NULL,
-    review_text TEXT,
-    recommended BOOLEAN NOT NULL,
-    playtime_hours DECIMAL(10,2),
-    playtime_at_review_hours DECIMAL(10,2),
-    helpful_votes INT DEFAULT 0,
-    PRIMARY KEY (review_id)
-)
-"""
-
-cursor.execute(create_table_sql)
-
-print(f"Table created: {table_name}")
-
-
-# ==========================================
 # Insert reviews
 # ==========================================
 
