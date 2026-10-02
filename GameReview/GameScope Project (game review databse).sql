@@ -22,6 +22,7 @@ create table if not exists games(
     game_price decimal(10,2) not null,
 
     primary key (game_id),
+    index idx_game_name (game_name),
 ) ENGINE = InnoDB;
 
 
@@ -54,6 +55,12 @@ create table if not exists reviews(
         constraint chek_revs_play_time_at_rev
         check (playtime_at_review_hours >= 0 and playtime_at_review_hours is null)
 
+    index idx_revs_game_id (game_id),
+    index idx_play_hours (playtime_hours),
+    index idx_play_hours_at_review (playtime_at_review_hours),
+    index idx_helpful_votes (helpful_votes),
+    index idx_language (language),
+    index idx_recommended (recommended)
 ) ENGINE = InnoDB;
 
 
@@ -85,6 +92,10 @@ create table if not exists reviews_import(
         references games(game_id)
         on update cascade
         on delete cascade
+
+    index idx_imports_game_id (game_id),
+    index idx_imports_date (import_started_at),
+    index idx_imports_status (status),
 ) ENGINE = InnoDB;
 
 show tables;
