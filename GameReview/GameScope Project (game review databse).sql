@@ -87,9 +87,10 @@ create table if not exists reviews_import(
         on delete cascade
 ) ENGINE = InnoDB;
 
-
-show tables;
-
+describe games;
 describe reviews;
+describe reviews_import;
 
+select * from games;
 select * from reviews;
+select * from reviews_import;
