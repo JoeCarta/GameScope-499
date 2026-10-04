@@ -20,7 +20,7 @@ create table if not exists games(
     game_release_date date not null,
     game_description text,
     game_developer varchar(255) not null,
-    game_publisher varchar(255) not null,
+    game_publisher varchar(255),
     game_price decimal(10,2) not null,
 
     primary key (game_id),
