@@ -9,6 +9,8 @@ use game_reviews;
 
 -- ============================================================
 -- GAMES
+-- For testing purposes, get rid of the not nulls because it
+-- forces us to provide values for them
 -- ============================================================
 
 create table if not exists games(
