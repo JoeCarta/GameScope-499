@@ -60,6 +60,29 @@ create table if not exists reviews(
 
 
 -- ============================================================
+-- GAME UPDATES
+-- Developer announcements from Steam, collected by steam_updates.py
+-- ============================================================
+
+create table if not exists game_updates(
+    update_id varchar(32) not null,
+    game_id int unsigned not null,
+    title varchar(255) not null,
+    url varchar(512),
+    posted_at datetime not null,
+    is_patch_notes boolean not null default false,
+
+    primary key (update_id),
+    foreign key (game_id)
+    references games(game_id)
+    on update cascade
+    on delete cascade,
+
+    index idx_updates_game_posted (game_id, posted_at)
+) ENGINE = InnoDB;
+
+
+-- ============================================================
 -- IMPORTING_REVIEWS
 -- ============================================================
 
@@ -97,8 +120,10 @@ show tables;
 
 describe games;
 describe reviews;
+describe game_updates;
 describe reviews_import;
 
 select * from games;
 select * from reviews;
+select * from game_updates;
 select * from reviews_import;
